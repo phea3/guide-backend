@@ -1,0 +1,23 @@
+CREATE TABLE `user` (
+	`id` varchar(256) NOT NULL,
+	`full_name` varchar(256),
+	`username` varchar(256),
+	`email` varchar(256),
+	`phone_number` varchar(256),
+	`verified_email` varchar(256),
+	`hash_password` varchar(256),
+	`image_profile` varchar(500),
+	`role` enum('Guide','Agency'),
+	`status` enum('Active','Inactive'),
+	`is_register_user` boolean,
+	`is_verified` boolean,
+	`is_first_login` boolean,
+	`otp_code` varchar(256),
+	`expireOtp` int,
+	`description` text,
+	`last_reset_password_at` datetime,
+	`last_login_at` datetime,
+	`created_at` datetime DEFAULT (utc_timestamp()),
+	`timestamp` int NOT NULL DEFAULT (unix_timestamp()),
+	CONSTRAINT `user_id` PRIMARY KEY(`id`)
+);

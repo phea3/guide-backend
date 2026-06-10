@@ -8,6 +8,13 @@
       "when": 1778473230385,
       "tag": "0000_little_maximus",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "5",
+      "when": 1779914883092,
+      "tag": "0001_outstanding_satana",
+      "breakpoints": true
     }
   ]
 }
