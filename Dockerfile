@@ -12,4 +12,4 @@ RUN yarn build
 
 EXPOSE 3000
 
-CMD ["yarn", "start"]
+CMD ["sh", "-c", "yarn start -p $PORT"]
