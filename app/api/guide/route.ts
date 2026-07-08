@@ -1,10 +1,14 @@
-import { NextRequest, NextResponse } from "next/server";
-import { guideSchema } from "@/db/schema";
+import { NextResponse } from "next/server";
+import { userSchema } from "@/db/schema";
 import { db } from "@/db/indext";
+import { eq } from "drizzle-orm";
 
 export async function GET() {
   try {
-    const guides = await db.select().from(guideSchema);
+    const guides = await db
+      .select()
+      .from(userSchema)
+      .where(eq(userSchema.role, "Guide"));
 
     return NextResponse.json({
       ok: true,

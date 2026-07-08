@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { guideSchema } from "@/db/schema";
+import { userSchema } from "@/db/schema";
 import { db } from "@/db/indext";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 
 export async function GET(req: NextRequest) {
   try {
@@ -17,8 +17,8 @@ export async function GET(req: NextRequest) {
 
     const guides = await db
       .select()
-      .from(guideSchema)
-      .where(eq(guideSchema.id, id));
+      .from(userSchema)
+      .where(and(eq(userSchema.id, id), eq(userSchema.role, "Guide")));
 
     const guide = guides[0];
 
