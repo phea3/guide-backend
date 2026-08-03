@@ -5,16 +5,10 @@ import { v4 as uuidv4 } from "uuid";
 import bcrypt from "bcryptjs";
 
 export async function POST(req: Request) {
-  console.log("POST /api/register");
-
   try {
     const body = await req.json();
 
-    console.log("body", body);
-
     const passwordHash = await bcrypt.hash(body.password, 12);
-
-    console.log("hashed");
 
     await db.insert(userSchema).values({
       id: uuidv4(),
@@ -23,8 +17,6 @@ export async function POST(req: Request) {
       role: body.role,
       hashPassword: passwordHash,
     });
-
-    console.log("inserted");
 
     return NextResponse.json({
       success: true,

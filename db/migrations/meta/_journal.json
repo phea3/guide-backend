@@ -15,6 +15,13 @@
       "when": 1779914883092,
       "tag": "0001_outstanding_satana",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1784704962411,
+      "tag": "0002_clever_nehzno",
+      "breakpoints": true
     }
   ]
 }
