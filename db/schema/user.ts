@@ -11,6 +11,9 @@ import {
 
 export const userSchema = mysqlTable("user", {
   id: varchar("id", { length: 256 }).primaryKey(),
+  clerkUserId: varchar("clerk_user_id", {
+    length: 256,
+  }).unique(),
   fullName: varchar("full_name", { length: 256 }),
   username: varchar("username", { length: 256 }),
   email: varchar("email", { length: 256 }),

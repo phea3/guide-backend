@@ -16,18 +16,18 @@ export async function GET(req: NextRequest) {
     }
 
     const user = await db.query.userSchema.findFirst({
-      where: eq(userSchema.id, id),
+      where: eq(userSchema.clerkUserId, id),
     });
 
     return NextResponse.json({
       ok: true,
-      data: user,
+      data: user || null,
     });
   } catch (error) {
     return NextResponse.json(
       {
         ok: false,
-        message: "Failed to fetch guides",
+        message: "Failed to fetch user",
       },
       {
         status: 500,
