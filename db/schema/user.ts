@@ -15,12 +15,15 @@ export const userSchema = mysqlTable("user", {
     length: 256,
   }).unique(),
   fullName: varchar("full_name", { length: 256 }),
+  firstName: varchar("first_name", { length: 256 }),
+  lastName: varchar("last_name", { length: 256 }),
   username: varchar("username", { length: 256 }),
   email: varchar("email", { length: 256 }),
   phoneNumber: varchar("phone_number", { length: 256 }),
   verifiedEmail: varchar("verified_email", { length: 256 }),
   hashPassword: varchar("hash_password", { length: 256 }),
   imageProfile: varchar("image_profile", { length: 500 }),
+  imageUrl: varchar("image_url", { length: 500 }),
   role: mysqlEnum("role", ["Guide", "Agency"]),
   status: mysqlEnum("status", ["Active", "Inactive"]).$defaultFn(
     () => "Active",
@@ -33,6 +36,9 @@ export const userSchema = mysqlTable("user", {
   description: text("description"),
   lastResetPasswordAt: datetime("last_reset_password_at", { mode: "string" }),
   lastLoginAt: datetime("last_login_at", { mode: "string" }),
+  updatedAt: datetime("updated_at", { mode: "string" }).default(
+    sql`(utc_timestamp())`,
+  ),
   createdAt: datetime("created_at", { mode: "string" }).default(
     sql`(utc_timestamp())`,
   ),
