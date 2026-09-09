@@ -53,17 +53,18 @@ export async function POST(req: Request) {
 
     const wh = new Webhook(SIGNING_SECRET);
 
-    const verified = wh.verify(payload, {
+    // Verify signature.
+    // In your installed Svix version, verify() may return void.
+    wh.verify(payload, {
       "svix-id": svix_id,
       "svix-timestamp": svix_timestamp,
       "svix-signature": svix_signature,
     });
 
-    if (!verified) {
-      throw new Error("Webhook verification returned no payload");
-    }
+    console.log("✅ Webhook signature verified");
 
-    const evt = verified as unknown as {
+    // The signature is verified, so now parse the original payload.
+    const evt = JSON.parse(payload) as {
       type: string;
       data: {
         id: string;
@@ -76,14 +77,9 @@ export async function POST(req: Request) {
       };
     };
 
-    console.log("✅ Webhook signature verified");
+    console.log("========== CLERK EVENT ==========");
     console.log("Event type:", evt.type);
     console.log("Event data:", evt.data);
-    console.log("✅ Webhook signature verified");
-
-    console.log("========== EVENT ==========");
-    console.log("Event type:", evt.type);
-    console.log("Event data:", JSON.stringify(evt.data, null, 2));
 
     if (evt.type === "user.created") {
       const { id, email_addresses, first_name, last_name, image_url } =
@@ -94,42 +90,18 @@ export async function POST(req: Request) {
       console.log("👤 Creating user:", id);
       console.log("📧 Email:", primaryEmail);
 
-      if (!primaryEmail) {
-        console.error("❌ No email found");
-
-        return NextResponse.json(
-          {
-            success: false,
-            message: "User has no email address",
-          },
-          { status: 400 },
-        );
-      }
-
-      await db
-        .insert(userSchema)
-        .values({
-          id,
-          clerkUserId: id,
-          email: primaryEmail,
-          firstName: first_name ?? "",
-          lastName: last_name ?? "",
-          fullName: `${first_name ?? ""} ${last_name ?? ""}`.trim(),
-          imageUrl: image_url ?? null,
-          isRegisterUser: false,
-          isVerified: false,
-          isFirstLogin: true,
-        })
-        .onDuplicateKeyUpdate({
-          set: {
-            email: primaryEmail,
-            firstName: first_name ?? "",
-            lastName: last_name ?? "",
-            imageUrl: image_url ?? null,
-          },
-        });
-
-      console.log("✅ User created/updated successfully");
+      await db.insert(userSchema).values({
+        id,
+        clerkUserId: id,
+        email: primaryEmail,
+        firstName: first_name ?? null,
+        lastName: last_name ?? null,
+        fullName: `${first_name ?? ""} ${last_name ?? ""}`.trim(),
+        imageUrl: image_url ?? null,
+        isRegisterUser: false,
+        isVerified: false,
+        isFirstLogin: true,
+      });
     }
 
     if (evt.type === "user.updated") {
