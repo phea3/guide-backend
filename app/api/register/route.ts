@@ -1,12 +1,14 @@
 import { NextResponse } from "next/server";
 import { userSchema } from "@/db/schema";
 import { db } from "@/db/indext";
-import { v4 as uuidv4 } from "uuid";
 import { verifyToken } from "@clerk/backend";
 import { eq } from "drizzle-orm";
 
 export async function POST(req: Request) {
   try {
+    // --------------------------------------------------
+    // 1. Get Clerk Bearer token
+    // --------------------------------------------------
     const authHeader = req.headers.get("Authorization");
 
     if (!authHeader?.startsWith("Bearer ")) {
@@ -22,14 +24,25 @@ export async function POST(req: Request) {
     const secretKey = process.env.CLERK_SECRET_KEY;
 
     if (!secretKey) {
-      throw new Error("CLERK_SECRET_KEY is not configured");
+      console.error("CLERK_SECRET_KEY is missing");
+
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Server authentication configuration error",
+        },
+        { status: 500 },
+      );
     }
 
     const token = authHeader.substring(7);
 
+    // --------------------------------------------------
+    // 2. Verify Clerk token
+    // --------------------------------------------------
     const verifiedToken = await verifyToken(token, {
       secretKey,
-      clockSkewInMs: 30000, // allow up to 30s skew
+      clockSkewInMs: 30000,
     });
 
     const clerkUserId = verifiedToken.sub;
@@ -44,51 +57,97 @@ export async function POST(req: Request) {
       );
     }
 
-    // Prevent duplicate application users
-    const [existingUser] = await db
-      .select()
-      .from(userSchema)
-      .where(eq(userSchema.clerkUserId, clerkUserId))
-      .limit(1);
-
-    if (existingUser) {
-      return NextResponse.json({
-        success: true,
-        user: existingUser,
-        alreadyExists: true,
-      });
-    }
+    // --------------------------------------------------
+    // 3. Parse request body
+    // --------------------------------------------------
     const body = await req.json();
 
-    const [user] = await db
+    const fullName =
+      typeof body.fullName === "string" ? body.fullName.trim() : "";
+
+    const role = body.role;
+
+    if (!["Guide", "Agency"].includes(role)) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Invalid role",
+        },
+        { status: 400 },
+      );
+    }
+
+    // --------------------------------------------------
+    // 4. Split full name
+    // --------------------------------------------------
+    let firstName = "";
+    let lastName = "";
+
+    if (fullName) {
+      const parts = fullName.split(/\s+/);
+
+      firstName = parts[0] ?? "";
+      lastName = parts.slice(1).join(" ");
+    }
+
+    // --------------------------------------------------
+    // 5. Check existing user
+    // --------------------------------------------------
+    const existingUser = await db.query.userSchema.findFirst({
+      where: eq(userSchema.id, clerkUserId),
+    });
+
+    if (existingUser) {
+      console.log(`User ${clerkUserId} already exists`);
+
+      return NextResponse.json({
+        success: true,
+        userId: existingUser.id,
+        user: existingUser,
+        message: "User already exists",
+      });
+    }
+
+    // --------------------------------------------------
+    // 6. Create user
+    // --------------------------------------------------
+    const [] = await db
       .insert(userSchema)
       .values({
-        id: uuidv4(),
+        id: clerkUserId,
         clerkUserId,
-        fullName: body.fullName,
-        email: body.email,
-        role: body.role,
+
+        fullName: fullName || null,
+        firstName: firstName || null,
+        lastName: lastName || null,
+        role,
+        isRegisterUser: true,
+        isVerified: false,
+        isFirstLogin: true,
+
+        status: "Active",
       })
       .$returningId();
 
+    console.log(`✅ User registered successfully: ${clerkUserId}`);
+
     return NextResponse.json({
       success: true,
-      user,
-      alreadyExists: false,
+      userId: clerkUserId,
+      message: "User registered successfully",
     });
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  } catch (error: any) {
-    console.error("REGISTER ERROR:", error);
+  } catch (error) {
+    console.error("========== REGISTER API ERROR ==========");
+    console.error(error);
+    console.error("========================================");
 
     return NextResponse.json(
       {
         success: false,
-        message: error?.message || "Failed to create user",
-        reason: error?.reason,
+        message:
+          error instanceof Error ? error.message : "Unknown registration error",
       },
-      {
-        status: error?.reason?.includes("token") ? 401 : 500,
-      },
+      { status: 500 },
     );
   }
 }

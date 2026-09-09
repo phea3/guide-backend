@@ -36,6 +36,13 @@
       "when": 1788870225249,
       "tag": "0004_tough_betty_brant",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "5",
+      "when": 1788920550281,
+      "tag": "0005_hot_sunfire",
+      "breakpoints": true
     }
   ]
 }

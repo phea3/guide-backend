@@ -21,8 +21,6 @@ export const userSchema = mysqlTable("user", {
   email: varchar("email", { length: 256 }),
   phoneNumber: varchar("phone_number", { length: 256 }),
   verifiedEmail: varchar("verified_email", { length: 256 }),
-  hashPassword: varchar("hash_password", { length: 256 }),
-  imageProfile: varchar("image_profile", { length: 500 }),
   imageUrl: varchar("image_url", { length: 500 }),
   role: mysqlEnum("role", ["Guide", "Agency"]),
   status: mysqlEnum("status", ["Active", "Inactive"]).$defaultFn(
