@@ -3,30 +3,30 @@ import { userSchema } from "@/db/schema";
 import { db } from "@/db/indext";
 
 export async function GET() {
+  console.log("🔥 /api/guide called");
+
   try {
-    console.log("GET /api/guide");
+    console.log("🔥 Testing database query...");
 
     const guides = await db.select().from(userSchema);
 
-    console.log("Guides fetched:", guides.length);
+    console.log("✅ Database query successful");
+    console.log("✅ Rows:", guides.length);
 
     return NextResponse.json({
       ok: true,
       data: guides,
     });
   } catch (error) {
-    console.error("❌ GET /api/guide FAILED");
+    console.error("🔥🔥 DATABASE ERROR 🔥🔥");
     console.error(error);
 
     return NextResponse.json(
       {
         ok: false,
-        message:
-          error instanceof Error ? error.message : "Failed to fetch guides",
+        message: error instanceof Error ? error.message : String(error),
       },
-      {
-        status: 500,
-      },
+      { status: 500 },
     );
   }
 }
