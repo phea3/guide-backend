@@ -12,7 +12,7 @@ export async function GET() {
 
     return NextResponse.json({
       ok: true,
-      data: guides,
+      data: guides || [],
     });
   } catch (error) {
     return NextResponse.json(

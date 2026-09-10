@@ -6,26 +6,18 @@ import { eq } from "drizzle-orm";
 
 export async function POST(req: Request) {
   try {
-    // --------------------------------------------------
-    // 1. Get Clerk Bearer token
-    // --------------------------------------------------
-    const authHeader = req.headers.get("Authorization");
+    const auth = req.headers.get("Authorization");
+    const secretKey = process.env.CLERK_SECRET_KEY;
 
-    if (!authHeader?.startsWith("Bearer ")) {
+    if (!auth?.startsWith("Bearer ")) {
       return NextResponse.json(
-        {
-          success: false,
-          message: "Unauthorized",
-        },
+        { success: false, message: "Unauthorized" },
         { status: 401 },
       );
     }
 
-    const secretKey = process.env.CLERK_SECRET_KEY;
-
     if (!secretKey) {
       console.error("CLERK_SECRET_KEY is missing");
-
       return NextResponse.json(
         {
           success: false,
@@ -35,117 +27,65 @@ export async function POST(req: Request) {
       );
     }
 
-    const token = authHeader.substring(7);
-
-    // --------------------------------------------------
-    // 2. Verify Clerk token
-    // --------------------------------------------------
-    const verifiedToken = await verifyToken(token, {
+    const { sub: clerkUserId } = await verifyToken(auth.slice(7), {
       secretKey,
-      clockSkewInMs: 30000,
+      clockSkewInMs: 120000,
     });
-
-    const clerkUserId = verifiedToken.sub;
 
     if (!clerkUserId) {
       return NextResponse.json(
-        {
-          success: false,
-          message: "Invalid Clerk token",
-        },
+        { success: false, message: "Invalid Clerk token" },
         { status: 401 },
       );
     }
 
-    // --------------------------------------------------
-    // 3. Parse request body
-    // --------------------------------------------------
-    const body = await req.json();
-
-    const fullName =
-      typeof body.fullName === "string" ? body.fullName.trim() : "";
-
-    const role = body.role;
+    const { fullName = "", role } = await req.json();
 
     if (!["Guide", "Agency"].includes(role)) {
       return NextResponse.json(
-        {
-          success: false,
-          message: "Invalid role",
-        },
+        { success: false, message: "Invalid role" },
         { status: 400 },
       );
     }
 
-    // --------------------------------------------------
-    // 4. Split full name
-    // --------------------------------------------------
-    let firstName = "";
-    let lastName = "";
+    const name = typeof fullName === "string" ? fullName.trim() : "";
+    const [firstName = "", ...rest] = name.split(/\s+/);
+    const lastName = rest.join(" ");
 
-    if (fullName) {
-      const parts = fullName.split(/\s+/);
+    const [user] = await db
+      .select({ id: userSchema.id })
+      .from(userSchema)
+      .where(eq(userSchema.id, clerkUserId))
+      .limit(1);
 
-      firstName = parts[0] ?? "";
-      lastName = parts.slice(1).join(" ");
+    if (!user) {
+      return NextResponse.json(
+        { success: false, message: "User does not exist" },
+        { status: 404 },
+      );
     }
 
-    // --------------------------------------------------
-    // 5. Check existing user
-    // --------------------------------------------------
-    const existingUser = await db.query.userSchema.findFirst({
-      where: eq(userSchema.id, clerkUserId),
-    });
-
-    if (existingUser) {
-      console.log(`User ${clerkUserId} already exists`);
-
-      return NextResponse.json({
-        success: true,
-        userId: existingUser.id,
-        user: existingUser,
-        message: "User already exists",
-      });
-    }
-
-    // --------------------------------------------------
-    // 6. Create user
-    // --------------------------------------------------
-    const [] = await db
-      .insert(userSchema)
-      .values({
-        id: clerkUserId,
-        clerkUserId,
-
-        fullName: fullName || null,
-        firstName: firstName || null,
-        lastName: lastName || null,
+    await db
+      .update(userSchema)
+      .set({
+        firstName,
+        lastName,
+        fullName: name,
         role,
-        isRegisterUser: true,
-        isVerified: false,
-        isFirstLogin: true,
-
-        status: "Active",
       })
-      .$returningId();
-
-    console.log(`✅ User registered successfully: ${clerkUserId}`);
+      .where(eq(userSchema.id, clerkUserId));
 
     return NextResponse.json({
       success: true,
-      userId: clerkUserId,
-      message: "User registered successfully",
+      message: "User updated successfully",
     });
   } catch (error) {
-    console.error("========== REGISTER API ERROR ==========");
-    console.error(error);
-    console.error("========================================");
+    console.error("REGISTER API ERROR:", error);
 
     return NextResponse.json(
       {
         success: false,
-        message:
-          error instanceof Error ? error.message : "Unknown registration error",
+        message: error instanceof Error ? error.message : "Unknown error",
       },
       { status: 500 },
     );
