@@ -18,7 +18,7 @@ export async function GET(req: NextRequest) {
     const guides = await db
       .select()
       .from(userSchema)
-      .where(and(eq(userSchema.id, id), eq(userSchema.role, "Guide")));
+      .where(and(eq(userSchema.clerkUserId, id), eq(userSchema.role, "Guide")));
 
     const guide = guides[0];
 

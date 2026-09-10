@@ -1,32 +1,28 @@
 import { NextResponse } from "next/server";
 import { userSchema } from "@/db/schema";
 import { db } from "@/db/indext";
+import { eq } from "drizzle-orm";
 
 export async function GET() {
-  console.log("🔥 /api/guide called");
-
   try {
-    console.log("🔥 Testing database query...");
-
-    const guides = await db.select().from(userSchema);
-
-    console.log("✅ Database query successful");
-    console.log("✅ Rows:", guides.length);
+    const guides = await db
+      .select()
+      .from(userSchema)
+      .where(eq(userSchema.role, "Guide"));
 
     return NextResponse.json({
       ok: true,
       data: guides,
     });
   } catch (error) {
-    console.error("🔥🔥 DATABASE ERROR 🔥🔥");
-    console.error(error);
-
     return NextResponse.json(
       {
         ok: false,
-        message: error instanceof Error ? error.message : String(error),
+        message: "Failed to fetch guides",
       },
-      { status: 500 },
+      {
+        status: 500,
+      },
     );
   }
 }
