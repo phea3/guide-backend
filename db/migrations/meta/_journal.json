@@ -43,6 +43,13 @@
       "when": 1788920550281,
       "tag": "0005_hot_sunfire",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "5",
+      "when": 1789099704232,
+      "tag": "0006_fast_toad",
+      "breakpoints": true
     }
   ]
 }

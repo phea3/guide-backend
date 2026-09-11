@@ -28,6 +28,7 @@ export const userSchema = mysqlTable("user", {
   ),
   isRegisterUser: boolean("is_register_user").$defaultFn(() => false),
   isVerified: boolean("is_verified").$defaultFn(() => false),
+  isCompletedProfile: boolean("is_completed_profile").$defaultFn(() => false),
   isFirstLogin: boolean("is_first_login").$defaultFn(() => true),
   otpCode: varchar("otp_code", { length: 256 }),
   expireOtp: int("expireOtp"),

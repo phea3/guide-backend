@@ -27,6 +27,15 @@ export async function POST(req: Request) {
 
     const updateData: UpdateUser = {};
 
+    if (!body.fullName || body.username || body.phoneNumber || body.email)
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Missing data",
+        },
+        { status: 500 },
+      );
+
     if (body.fullName !== undefined) {
       updateData.fullName = body.fullName;
     }
@@ -57,7 +66,7 @@ export async function POST(req: Request) {
 
     await db
       .update(userSchema)
-      .set(updateData)
+      .set({ ...updateData, isCompletedProfile: true })
       .where(eq(userSchema.id, user.id));
 
     return NextResponse.json({
