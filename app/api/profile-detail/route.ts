@@ -1,6 +1,6 @@
 import { db } from "@/db/indext";
 import { userSchema, UserType } from "@/db/schema";
-import { eq, or } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
@@ -8,10 +8,7 @@ export async function POST(req: Request) {
     const body = await req.json();
 
     const user = await db.query.userSchema.findFirst({
-      where: or(
-        eq(userSchema.email, body.email),
-        eq(userSchema.username, body.email),
-      ),
+      where: eq(userSchema.id, body.id),
     });
 
     if (!user) {
