@@ -27,7 +27,7 @@ export async function POST(req: Request) {
 
     const updateData: UpdateUser = {};
 
-    if (!body.fullName || body.username || body.phoneNumber || body.email)
+    if (!body.fullName || !body.username || !body.phoneNumber || !body.email)
       return NextResponse.json(
         {
           success: false,
