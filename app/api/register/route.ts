@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
+import { createClerkClient, verifyToken } from "@clerk/backend";
+import { eq } from "drizzle-orm";
+
 import { userSchema } from "@/db/schema";
 import { db } from "@/db/indext";
-import { verifyToken } from "@clerk/backend";
-import { eq } from "drizzle-orm";
 
 export async function POST(req: Request) {
   try {
@@ -18,6 +19,7 @@ export async function POST(req: Request) {
 
     if (!secretKey) {
       console.error("CLERK_SECRET_KEY is missing");
+
       return NextResponse.json(
         {
           success: false,
@@ -39,7 +41,8 @@ export async function POST(req: Request) {
       );
     }
 
-    const { fullName = "", role } = await req.json();
+    const body = await req.json();
+    const role = body.role;
 
     if (!["Guide", "Agency"].includes(role)) {
       return NextResponse.json(
@@ -48,20 +51,41 @@ export async function POST(req: Request) {
       );
     }
 
-    const name = typeof fullName === "string" ? fullName.trim() : "";
-    const [firstName = "", ...rest] = name.split(/\s+/);
-    const lastName = rest.join(" ");
+    // Get trusted profile data from Clerk, not the request body.
+    const clerk = createClerkClient({ secretKey });
+    const profile = await clerk.users.getUser(clerkUserId);
 
-    const [user] = await db
+    const firstName = profile.firstName ?? "";
+    const lastName = profile.lastName ?? "";
+    const fullName =
+      profile.fullName?.trim() || `${firstName} ${lastName}`.trim();
+
+    const email = profile.primaryEmailAddress?.emailAddress ?? "";
+    const imageUrl = profile.imageUrl ?? "";
+
+    const [existingUser] = await db
       .select({ id: userSchema.id })
       .from(userSchema)
       .where(eq(userSchema.id, clerkUserId))
       .limit(1);
 
-    if (!user) {
+    if (!existingUser) {
+      await db.insert(userSchema).values({
+        id: clerkUserId,
+        firstName,
+        lastName,
+        fullName,
+        email,
+        imageUrl,
+        role,
+      });
+
       return NextResponse.json(
-        { success: false, message: "User does not exist" },
-        { status: 404 },
+        {
+          success: true,
+          message: "User registered successfully",
+        },
+        { status: 201 },
       );
     }
 
@@ -70,7 +94,9 @@ export async function POST(req: Request) {
       .set({
         firstName,
         lastName,
-        fullName: name,
+        fullName,
+        email,
+        imageUrl,
         role,
       })
       .where(eq(userSchema.id, clerkUserId));

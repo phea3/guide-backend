@@ -12,17 +12,18 @@ export async function GET() {
 
     return NextResponse.json({
       ok: true,
-      data: guides || [],
+      data: guides,
     });
   } catch (error) {
+    console.error("Failed to fetch guides:", error);
+
     return NextResponse.json(
       {
         ok: false,
         message: "Failed to fetch guides",
+        error: error instanceof Error ? error.message : String(error),
       },
-      {
-        status: 500,
-      },
+      { status: 500 },
     );
   }
 }

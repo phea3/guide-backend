@@ -16,7 +16,7 @@ export async function GET(req: NextRequest) {
     }
 
     const user = await db.query.userSchema.findFirst({
-      where: eq(userSchema.clerkUserId, id),
+      where: eq(userSchema.id, id),
     });
 
     return NextResponse.json({
