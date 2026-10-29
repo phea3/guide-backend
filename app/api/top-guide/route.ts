@@ -12,6 +12,7 @@ export async function GET() {
       },
     });
 
+    // 5 guides
     const topGuides = guides
       .map((guide) => ({
         ...guide,
