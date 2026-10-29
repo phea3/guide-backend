@@ -1,4 +1,4 @@
-import { sql } from "drizzle-orm";
+import { relations, sql } from "drizzle-orm";
 import {
   datetime,
   int,
@@ -8,6 +8,7 @@ import {
   varchar,
   boolean,
 } from "drizzle-orm/mysql-core";
+import { availableDaySchema } from "./availability";
 
 export const userSchema = mysqlTable("user", {
   id: varchar("id", { length: 256 }).primaryKey(),
@@ -46,6 +47,10 @@ export const userSchema = mysqlTable("user", {
     .notNull()
     .default(sql`(unix_timestamp())`),
 });
+
+export const userRelations = relations(userSchema, ({ many }) => ({
+  availableDays: many(availableDaySchema),
+}));
 
 export type UserType = typeof userSchema.$inferSelect; // return type when queried
 export type NewUserType = typeof userSchema.$inferInsert; // insert type
