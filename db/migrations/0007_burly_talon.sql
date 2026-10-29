@@ -1,0 +1,1 @@
+ALTER TABLE `user` ADD `telegram_link` varchar(256);

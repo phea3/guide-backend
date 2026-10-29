@@ -20,6 +20,7 @@ export const userSchema = mysqlTable("user", {
   username: varchar("username", { length: 256 }),
   email: varchar("email", { length: 256 }),
   phoneNumber: varchar("phone_number", { length: 256 }),
+  telegramLink: varchar("telegram_link", { length: 256 }),
   verifiedEmail: varchar("verified_email", { length: 256 }),
   imageUrl: varchar("image_url", { length: 500 }),
   role: mysqlEnum("role", ["Guide", "Agency"]),

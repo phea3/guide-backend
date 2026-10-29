@@ -20,7 +20,7 @@ export async function GET(req: NextRequest) {
       .from(userSchema)
       .where(
         and(
-          or(eq(userSchema.clerkUserId, id), eq(userSchema.id, id)),
+          or(eq(userSchema.id, id), eq(userSchema.id, id)),
           eq(userSchema.role, "Guide"),
         ),
       );

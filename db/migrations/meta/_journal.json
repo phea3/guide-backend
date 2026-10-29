@@ -50,6 +50,13 @@
       "when": 1789099704232,
       "tag": "0006_fast_toad",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "5",
+      "when": 1793155615806,
+      "tag": "0007_burly_talon",
+      "breakpoints": true
     }
   ]
 }
