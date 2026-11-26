@@ -9,6 +9,7 @@ import {
   boolean,
 } from "drizzle-orm/mysql-core";
 import { availableDaySchema } from "./availability";
+import { userFriendSchema } from "./friend";
 
 export const userSchema = mysqlTable("user", {
   id: varchar("id", { length: 256 }).primaryKey(),
@@ -50,6 +51,7 @@ export const userSchema = mysqlTable("user", {
 
 export const userRelations = relations(userSchema, ({ many }) => ({
   availableDays: many(availableDaySchema),
+  friends: many(userFriendSchema),
 }));
 
 export type UserType = typeof userSchema.$inferSelect; // return type when queried
