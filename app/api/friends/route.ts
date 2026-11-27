@@ -19,7 +19,12 @@ export async function GET(req: NextRequest) {
     const guide = await db.query.userSchema.findFirst({
       where: and(eq(userSchema.id, id)),
       with: {
-        friends: true,
+        friends: {
+          with: {
+            user: true,
+            friend: true,
+          },
+        },
       },
     });
     console.log("Guide:", guide);
