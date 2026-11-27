@@ -14,7 +14,7 @@ export async function GET(req: NextRequest) {
         { status: 400 },
       );
     }
-
+    console.log("ID: ", id);
     // hide
     const guide = await db.query.userSchema.findFirst({
       where: and(eq(userSchema.id, id)),
@@ -22,12 +22,15 @@ export async function GET(req: NextRequest) {
         friends: true,
       },
     });
+    console.log("Guide:", guide);
 
     return NextResponse.json({
       ok: true,
       data: guide,
     });
-  } catch (error) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  } catch (error: any) {
+    console.log("Error:", error?.message);
     return NextResponse.json(
       {
         ok: false,
