@@ -51,7 +51,9 @@ export const userSchema = mysqlTable("user", {
 
 export const userRelations = relations(userSchema, ({ many }) => ({
   availableDays: many(availableDaySchema),
-  friends: many(userFriendSchema),
+  friends: many(userFriendSchema, {
+    relationName: "userFriends",
+  }),
 }));
 
 export type UserType = typeof userSchema.$inferSelect; // return type when queried
