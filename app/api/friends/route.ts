@@ -15,6 +15,7 @@ export async function GET(req: NextRequest) {
       );
     }
 
+    // hide
     const guide = await db.query.userSchema.findFirst({
       where: and(eq(userSchema.id, id)),
       with: {
